@@ -1,0 +1,207 @@
+**You:**
+
+
+Here 2 controllers: [Route("api/[controller]")]
+  [ApiController]
+  public class BalancesController : ControllerBase {
+
+    private readonly IStripeAccessFacade _stripeAccessFacade;
+    private readonly ILogger<BalancesController> _logger;
+
+    public BalancesController(IStripeAccessFacade stripeAccessFacade, ILogger<BalancesController> logger) {
+      _stripeAccessFacade = stripeAccessFacade ?? throw new ArgumentNullException(nameof(stripeAccessFacade));
+      _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetBalances() {
+
+      try {
+        var balanceList = await _stripeAccessFacade.GetStripeBalances();
+
+        if (balanceList == null) {
+          return NotFound("No balance records found.");
+        }
+
+        return Ok(balanceList);
+      }
+      catch (StripeException stripeException) {
+        // Handle Stripe API errors
+        var errorResponse = new {
+          Error = stripeException?.StripeError?.Message
+        };
+        _logger.LogError("Exception occured in: BalancesController: GetBalances. Exception message: " + errorResponse?.Error);
+        return BadRequest(errorResponse);
+      }
+      catch (Exception ex) {
+        // Handle other exceptions
+        _logger.LogError("Exception occured in: BalancesController: GetBalances. Exception message: " + ex.Message);
+        return StatusCode(500);
+      }
+    }
+  }
+And second:
+  [Route("api/[controller]")]
+  [ApiController]
+  public class BalanceTransactionsController : ControllerBase {
+
+    private readonly IStripeAccessFacade _stripeAccessFacade;
+    private readonly ILogger<BalanceTransactionsController> _logger;
+
+    public BalanceTransactionsController(IStripeAccessFacade stripeAccessFacade, ILogger<BalanceTransactionsController> logger) {
+      _stripeAccessFacade = stripeAccessFacade ?? throw new ArgumentNullException(nameof(stripeAccessFacade));
+      _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetBalanceTransactions([FromQuery] TransactionPaginationOptions paginationOptions) {
+      // Validate the pagination options
+      if (!ModelState.IsValid) {
+        return BadRequest(ModelState);
+      }
+
+      if (!string.IsNullOrWhiteSpace(paginationOptions.StartAfter) && !string.IsNullOrWhiteSpace(paginationOptions.EndBefore)) {
+        return BadRequest("Cannot specify both StartAfter and EndBefore. Please provide only one of them.");
+      }
+
+      try {
+        var transactions = await _stripeAccessFacade.GetStripeBalanceTransactions(paginationOptions);
+
+        return Ok(transactions);
+      }
+      catch (StripeException stripeException) {
+        // Handle Stripe API errors
+        var errorResponse = new {
+          Error = stripeException?.StripeError?.Message
+        };
+        _logger.LogError("Exception occured in: BalanceTransactionsController: GetBalanceTransactions. Exception message: " + errorResponse?.Error);
+        return BadRequest(errorResponse);
+      }
+      catch (Exception ex) {
+        // Handle other exceptions
+        _logger.LogError("Exception occured in: BalanceTransactionsController: GetBalanceTransactions. Exception message: " + ex.Message);
+        return StatusCode(500);
+      }
+
+    }
+  }
+create readme.md documentation with application description
+------------------
+**ChatGPT:**
+
+
+Stripe Balance API Application
+
+This application provides a set of endpoints that interact with the Stripe API to retrieve balance information. It is implemented in .NET using a RESTful approach and is designed to be consumed by other services or applications.
+
+Description
+
+The application is split into two main controllers:
+
+BalancesController
+BalanceTransactionsController
+
+Each controller serves a specific purpose within the application and interacts with the Stripe API using a defined StripeAccessFacade.
+
+BalancesController
+
+This controller provides an endpoint to get balance information.
+
+GET api/Balances endpoint: Returns the list of balances from Stripe. If no balances are found, a 404 (Not Found) status code is returned. Any errors encountered during the process are logged and appropriately returned to the client.
+BalanceTransactionsController
+
+This controller provides an endpoint to get balance transactions information.
+
+GET api/BalanceTransactions endpoint: Returns a paginated list of balance transactions from Stripe. Pagination parameters can be provided in the request. If the pagination parameters are not valid, a 400 (Bad Request) status code is returned. If both StartAfter and EndBefore pagination options are provided, a 400 (Bad Request) status code is returned with an error message since both cannot be specified at the same time. Any errors encountered during the process are logged and appropriately returned to the client.
+Exception Handling
+
+Both controllers handle exceptions in the following manner:
+
+StripeException: Any exceptions thrown by the Stripe API are caught and logged with a custom error message. The error message from the Stripe API is included in the BadRequest response.
+General Exceptions: Any other exceptions are caught, logged, and a 500 (Internal Server Error) status code is returned.
+Dependencies
+
+The application makes use of the following main dependencies:
+
+Stripe.Net: To interact with the Stripe API.
+Microsoft.Extensions.Logging: For application logging purposes.
+Usage
+
+The API can be accessed via standard HTTP methods. For example, you can use tools such as curl, Postman, or any HTTP client in any programming language to interact with the API.
+
+Setup
+
+The application requires an API key for the Stripe API, which should be provided in the application settings.
+
+You can run the application using an IDE such as Visual Studio, or from the command line using the dotnet run command.
+
+Contribution
+
+Feel free to contribute to this project by opening issues or providing pull requests.
+
+License
+
+This project is licensed under the MIT License.
+------------------
+**You:**
+
+
+Rewrite it that markup should be keept in text
+------------------
+**ChatGPT:**
+
+
+Sure, here it is in plain text, keeping the structure and the readability intact:
+
+Stripe Balance API Application
+
+This application provides a set of endpoints that interact with the Stripe API to retrieve balance information. It is implemented in .NET using a RESTful approach and is designed to be consumed by other services or applications.
+
+Description
+
+The application is split into two main controllers: BalancesController and BalanceTransactionsController. Each controller serves a specific purpose within the application and interacts with the Stripe API using a defined StripeAccessFacade.
+
+BalancesController
+
+This controller provides an endpoint to get balance information.
+
+GET api/Balances endpoint: Returns the list of balances from Stripe. If no balances are found, a 404 (Not Found) status code is returned. Any errors encountered during the process are logged and appropriately returned to the client.
+
+BalanceTransactionsController
+
+This controller provides an endpoint to get balance transactions information.
+
+GET api/BalanceTransactions endpoint: Returns a paginated list of balance transactions from Stripe. Pagination parameters can be provided in the request. If the pagination parameters are not valid, a 400 (Bad Request) status code is returned. If both StartAfter and EndBefore pagination options are provided, a 400 (Bad Request) status code is returned with an error message since both cannot be specified at the same time. Any errors encountered during the process are logged and appropriately returned to the client.
+
+Exception Handling
+
+Both controllers handle exceptions in the following manner:
+
+StripeException: Any exceptions thrown by the Stripe API are caught and logged with a custom error message. The error message from the Stripe API is included in the BadRequest response.
+General Exceptions: Any other exceptions are caught, logged, and a 500 (Internal Server Error) status code is returned.
+
+Dependencies
+
+The application makes use of the following main dependencies:
+
+Stripe.Net: To interact with the Stripe API.
+Microsoft.Extensions.Logging: For application logging purposes.
+
+Usage
+
+The API can be accessed via standard HTTP methods. For example, you can use tools such as curl, Postman, or any HTTP client in any programming language to interact with the API.
+
+Setup
+
+The application requires an API key for the Stripe API, which should be provided in the application settings.
+
+You can run the application using an IDE such as Visual Studio, or from the command line using the dotnet run command.
+
+Contribution
+
+Feel free to contribute to this project by opening issues or providing pull requests.
+
+License
+
+This project is licensed under the MIT License.
+------------------
