@@ -31,9 +31,9 @@ namespace StripeTestAPI.Controllers {
       catch (StripeException stripeException) {
         // Handle Stripe API errors
         var errorResponse = new {
-          Error = stripeException.StripeError.Message
+          Error = stripeException?.StripeError?.Message
         };
-        _logger.LogError("Exception occured in: BalancesController: GetBalances. Exception message: " + errorResponse.Error);
+        _logger.LogError("Exception occured in: BalancesController: GetBalances. Exception message: " + errorResponse?.Error);
         return BadRequest(errorResponse);
       }
       catch (Exception ex) {
