@@ -16,7 +16,6 @@ namespace StripeTestAPI.Controllers {
       _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    // GET: api/StripeBalance?page=2
     [HttpGet]
     public async Task<IActionResult> GetBalances() {
 
